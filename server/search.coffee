@@ -1,6 +1,8 @@
 bodyParser = Npm.require 'body-parser'
 Picker.middleware bodyParser.json()
 Picker.middleware bodyParser.urlencoded(extended:false)
+Picker.route '/', (params, req, res, next) ->
+  res.end 'hello'
 Picker.route '/search', (params, req, res, next) ->
   res.setHeader "Access-Control-Allow-Origin", "*"
   res.setHeader "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"
