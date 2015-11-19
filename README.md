@@ -2,7 +2,7 @@ make a file called settings.json with your api details in it
 ```json
 {
   "API_KEY": "23ihgjndgdasgnldsag32oho",
-  "API_URL": "https://apiurl.com"
+  "API_URL": "https://apiurl.com/search?APIKey="
 }
 ```
 then run it with
