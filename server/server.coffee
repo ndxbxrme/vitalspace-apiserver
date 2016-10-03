@@ -1,4 +1,7 @@
 @propSwitch = 0
+@apiurl = undefined
+@apikey = undefined
+@refreshMinutes = Meteor.settings.REFRESH_MINUTES
 Meteor.startup ->
   Props = undefined
   apiurl = Meteor.settings.API_URL
@@ -7,14 +10,14 @@ Meteor.startup ->
     if propSwitch is 1 then Props = Properties
     else Props = Properties1
     if not pageNo then pageNo = 1
-    HTTP.call 'post', apiurl + apikey, 
+    HTTP.call 'post', apiurl + 'search?APIKey=' + apikey, 
       data: {
         MarketingFlags: 'ApprovedForMarketingWebsite'
         MinimumPrice: 0
         MaximumPrice: 9999999
         MinimumBedrooms: 0
         SortBy: 0
-        PageSize: 100
+        PageSize: 20
         IncludeStc: true
         BranchIdList: []
         PageNumber: pageNo
@@ -35,24 +38,29 @@ Meteor.startup ->
             if property.RoomCountsDescription.Others then property.NoRooms += property.RoomCountsDescription.Others
           Props.insert property
         if ((data.data.PageNumber - 1) * data.data.PageSize) + data.data.CurrentCount < data.data.TotalCount
-          fetchStcProperties ++pageNo
+          setTimeout Meteor.bindEnvironment ->
+            fetchStcProperties ++pageNo
+          , 100
         else
-          fetchNonStcProperties 1
+          setTimeout Meteor.bindEnvironment ->
+            fetchNonStcProperties 1
+          , 100
   fetchNonStcProperties = (pageNo) ->
-    HTTP.call 'post', apiurl + apikey,
+    HTTP.call 'post', apiurl + 'search?APIKey=' + apikey, 
       data: {
         MarketingFlags: 'ApprovedForMarketingWebsite'
         MinimumPrice: 0
         MaximumPrice: 9999999
         MinimumBedrooms: 0
         SortBy: 0
-        PageSize: 100
+        PageSize: 20
         IncludeStc: false
         BranchIdList: []
         PageNumber: pageNo
       }
       headers: {'Rezi-Api-Version': '1.0'}
     , Meteor.bindEnvironment (err, data) ->
+      console.log 'non stc done'
       if data.data.Collection
         for property in data.data.Collection
           Props.update
@@ -60,7 +68,9 @@ Meteor.startup ->
           , '$set':
             stc: false
       if ((data.data.PageNumber - 1) * data.data.PageSize) + data.data.CurrentCount < data.data.TotalCount
-        fetchNonStcProperties ++pageNo
+        setTimeout Meteor.bindEnvironment ->
+          fetchNonStcProperties ++pageNo
+        , 100
       else
         if propSwitch is 1
           @propSwitch = 0 
@@ -68,6 +78,6 @@ Meteor.startup ->
           @propSwitch = 1
 
 
-  setInterval Meteor.bindEnvironment(fetchStcProperties), 1 * 60 * 1000
+  setInterval Meteor.bindEnvironment(fetchStcProperties), refreshMinutes * 60 * 1000
   Props = Properties
   fetchStcProperties 1
