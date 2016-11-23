@@ -17,14 +17,14 @@ Meteor.startup ->
         MaximumPrice: 9999999
         MinimumBedrooms: 0
         SortBy: 0
-        PageSize: 20
+        PageSize: 2000
         IncludeStc: true
         BranchIdList: []
         PageNumber: pageNo
       }
       headers: {'Rezi-Api-Version': '1.0'}
     , Meteor.bindEnvironment (err, data) ->
-      console.log 'call done ', data.data.pageNumber, data.data.PageSize, data.data.CurrentCount, data.data.TotalCount
+      console.log 'call done ', data.data.PageNumber, data.data.PageSize, data.data.CurrentCount, data.data.TotalCount
       if data.data.Collection
         if pageNo is 1
           Props.remove {}
@@ -37,14 +37,7 @@ Meteor.startup ->
             if property.RoomCountsDescription.Receptions then property.NoRooms += property.RoomCountsDescription.Receptions
             if property.RoomCountsDescription.Others then property.NoRooms += property.RoomCountsDescription.Others
           Props.insert property
-        if ((data.data.PageNumber - 1) * data.data.PageSize) + data.data.CurrentCount < data.data.TotalCount
-          setTimeout Meteor.bindEnvironment ->
-            fetchStcProperties ++pageNo
-          , 100
-        else
-          setTimeout Meteor.bindEnvironment ->
-            fetchNonStcProperties 1
-          , 100
+        fetchNonStcProperties 1
   fetchNonStcProperties = (pageNo) ->
     HTTP.call 'post', apiurl + 'search?APIKey=' + apikey, 
       data: {
@@ -53,7 +46,7 @@ Meteor.startup ->
         MaximumPrice: 9999999
         MinimumBedrooms: 0
         SortBy: 0
-        PageSize: 20
+        PageSize: 2000
         IncludeStc: false
         BranchIdList: []
         PageNumber: pageNo
@@ -67,15 +60,10 @@ Meteor.startup ->
             RoleId: property.RoleId
           , '$set':
             stc: false
-      if ((data.data.PageNumber - 1) * data.data.PageSize) + data.data.CurrentCount < data.data.TotalCount
-        setTimeout Meteor.bindEnvironment ->
-          fetchNonStcProperties ++pageNo
-        , 100
-      else
-        if propSwitch is 1
-          @propSwitch = 0 
-        else 
-          @propSwitch = 1
+      if propSwitch is 1
+        @propSwitch = 0 
+      else 
+        @propSwitch = 1
 
 
   setInterval Meteor.bindEnvironment(fetchStcProperties), refreshMinutes * 60 * 1000
