@@ -24,7 +24,7 @@ Meteor.startup ->
       }
       headers: {'Rezi-Api-Version': '1.0'}
     , Meteor.bindEnvironment (err, data) ->
-      console.log 'call done ' + new Date()
+      console.log 'call done ', data.data.pageNumber, data.data.PageSize, data.data.CurrentCount, data.data.TotalCount
       if data.data.Collection
         if pageNo is 1
           Props.remove {}
